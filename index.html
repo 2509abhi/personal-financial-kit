@@ -1,0 +1,2119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Personal Fintech Toolkit (Single File)</title>
+
+  <!-- Chart.js (library only; no APIs/data fetching) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --surface:#ffffff;
+      --surface-2:#f7f8fb;
+      --text:#0b1220;
+      --muted:#5b677a;
+      --border:#e6e9f2;
+      --accent:#1f5eff;
+      --accent-2:#16a34a;
+      --warn:#b45309;
+      --bad:#dc2626;
+
+      --shadow-sm: 0 2px 10px rgba(15, 23, 42, .06);
+      --shadow: 0 12px 36px rgba(15, 23, 42, .08);
+      --radius: 14px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 55%, #ffffff 100%);
+      color:var(--text);
+    }
+
+    header{
+      position:sticky; top:0; z-index:5;
+      background:rgba(255,255,255,.9);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+
+    .wrap{ max-width: 1200px; margin: 0 auto; padding: 16px 16px; }
+    .topbar{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+    }
+    h1{
+      font-size: 18px; margin:0;
+      letter-spacing:.2px;
+      font-weight: 700;
+    }
+    .sub{ color:var(--muted); font-size: 12px; margin-top:4px; }
+
+    nav{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+    }
+
+    .tab{
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-size: 13px;
+      transition: .15s ease;
+      user-select:none;
+      box-shadow: var(--shadow-sm);
+    }
+    .tab:hover{ transform: translateY(-1px); }
+    .tab.active{
+      border-color: rgba(31,94,255,.35);
+      box-shadow: 0 0 0 3px rgba(31,94,255,.12);
+      color: var(--accent);
+    }
+
+    main{ padding: 18px 0 36px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 14px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      nav{ justify-content:flex-start; }
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .card h2{
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 750;
+    }
+    .muted{ color:var(--muted); font-size: 12px; }
+
+    .row{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+      align-items:end;
+    }
+
+    .field{ grid-column: span 3; }
+    .field.w4{ grid-column: span 4; }
+    .field.w6{ grid-column: span 6; }
+    .field.w8{ grid-column: span 8; }
+    .field.w12{ grid-column: span 12; }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      outline:none;
+      background:#fff;
+      color: var(--text);
+      font-size: 14px;
+      transition: .15s ease;
+    }
+    textarea{ min-height: 92px; resize: vertical; }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(31,94,255,.45);
+      box-shadow: 0 0 0 3px rgba(31,94,255,.10);
+    }
+    input[disabled]{
+      background: var(--surface-2);
+      color: #677286;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+      align-items:center;
+    }
+
+    button{
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size: 13px;
+      transition: .15s ease;
+      user-select:none;
+      box-shadow: var(--shadow-sm);
+    }
+    button:hover{ transform: translateY(-1px); }
+    button:active{ transform: translateY(0px); }
+
+    button.primary{
+      background: var(--accent);
+      color:#fff;
+      border-color: rgba(31,94,255,.25);
+    }
+    button.ghost{ background:#fff; }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .pill strong{ color:var(--text); font-weight:800; }
+
+    .kpis{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .good{ color: var(--accent-2); }
+    .warn{ color: var(--warn); }
+    .bad{ color: var(--bad); }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+      background:#fff;
+    }
+    thead th{
+      position: sticky;
+      top: 0;
+      background: #fbfcff;
+      z-index: 1;
+    }
+    th, td{
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: right;
+      vertical-align: top;
+    }
+    th{ color: var(--muted); font-weight: 700; }
+    th:first-child, td:first-child{ text-align:left; }
+
+    .section{ display:none; }
+    .section.active{ display:block; }
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 980px){
+      .split{ grid-template-columns: 1fr; }
+    }
+
+    .note{
+      background: var(--surface-2);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.55;
+    }
+    .mono{ font-family: var(--mono); }
+    .tiny{ font-size: 11px; color: var(--muted); }
+    .right{ text-align:right; }
+    .hr{ height:1px; background:var(--border); margin: 10px 0; }
+
+    .badge{
+      display:inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      margin: 2px 6px 2px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .codebox{
+      font-family: var(--mono);
+      font-size: 12px;
+      background:#fff;
+      border:1px dashed var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      overflow:auto;
+      max-height: 280px;
+      white-space: pre;
+      color: #0f172a;
+    }
+
+    .result-card{
+      border: 1px solid rgba(31,94,255,.18);
+      background: linear-gradient(180deg, rgba(31,94,255,.06), rgba(31,94,255,.02));
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Personal Fintech Toolkit</h1>
+        <div class="sub">Single-file • No APIs • No DB • LocalStorage + JSON import/export • Light theme</div>
+      </div>
+      <nav id="tabs"></nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- CALCULATORS -->
+  <section class="section active" id="sec-calculators">
+    <div class="grid">
+      <div class="card">
+        <h2>Calculators</h2>
+
+        <div class="note">
+          <b>Assumptions used (transparent and editable):</b><br/>
+          • Annual expense ratio is treated as a drag on return (approx).<br/>
+          • Exit costs are applied once at the end (brokerage + exit load).<br/>
+          • SIP uses a simple end-of-month contribution model.<br/>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div class="field w4">
+            <label>Calculator</label>
+            <select id="calcType">
+              <option value="sip">SIP</option>
+              <option value="lumpsum">Lumpsum</option>
+              <option value="retirement">Retirement Plan</option>
+              <option value="swp">SWP (Withdrawals)</option>
+            </select>
+          </div>
+
+          <div class="field w4">
+            <label>Expected Return (per year) %</label>
+            <input id="retPA" type="number" step="0.01" value="12" />
+          </div>
+
+          <div class="field w4">
+            <label>Expense Ratio (per year) %</label>
+            <input id="expPA" type="number" step="0.01" value="1.0" />
+          </div>
+
+          <div class="field">
+            <label>Brokerage % (one-time at exit)</label>
+            <input id="brokerPct" type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label>Exit Load % (one-time at exit)</label>
+            <input id="exitLoadPct" type="number" step="0.01" value="0" />
+          </div>
+
+          <!-- Years/Months (used for SIP/Lumpsum/SWP; auto-derived in Retirement) -->
+          <div class="field" id="field-years">
+            <label>Years</label>
+            <input id="years" type="number" step="1" value="10" />
+          </div>
+          <div class="field" id="field-months">
+            <label>Months (auto)</label>
+            <input id="months" type="number" step="1" value="120" disabled />
+          </div>
+
+          <!-- SIP -->
+          <div class="field w4" id="field-sip-amt">
+            <label>SIP Amount (monthly)</label>
+            <input id="sipAmt" type="number" step="1" value="10000" />
+          </div>
+
+          <!-- Lumpsum -->
+          <div class="field w4" id="field-lump-amt" style="display:none;">
+            <label>Lumpsum Amount</label>
+            <input id="lumpAmt" type="number" step="1" value="500000" />
+          </div>
+
+          <!-- Retirement: age-based inputs -->
+          <div class="field w4" id="field-ret-curage" style="display:none;">
+            <label>Current Age</label>
+            <input id="curAge" type="number" step="1" value="30" />
+          </div>
+          <div class="field w4" id="field-ret-age" style="display:none;">
+            <label>Retirement Age</label>
+            <input id="retAge" type="number" step="1" value="60" />
+          </div>
+          <div class="field w4" id="field-ret-life" style="display:none;">
+            <label>Life Expectancy</label>
+            <input id="lifeAge" type="number" step="1" value="85" />
+          </div>
+
+          <div class="field w4" id="field-ret-existing" style="display:none;">
+            <label>Existing Retirement Corpus (₹) (already invested)</label>
+            <input id="retExistingCorpus" type="number" step="1" value="0" />
+          </div>
+
+          <div class="field w4" id="field-ret-target" style="display:none;">
+            <label>Target Corpus (₹) (optional)</label>
+            <input id="retTarget" type="number" step="1" value="0" />
+          </div>
+
+          <div class="field w4" id="field-ret-monthlyexp" style="display:none;">
+            <label>Monthly Expense Today (₹)</label>
+            <input id="retMonthlyExp" type="number" step="1" value="80000" />
+          </div>
+
+          <div class="field w4" id="field-ret-infl" style="display:none;">
+            <label>Inflation (per year) %</label>
+            <input id="inflPA" type="number" step="0.01" value="6" />
+          </div>
+
+          <div class="field w4" id="field-ret-post" style="display:none;">
+            <label>Post-Retirement Return (per year) %</label>
+            <input id="postRetPA" type="number" step="0.01" value="8" />
+          </div>
+
+          <div class="field w4" id="field-ret-years" style="display:none;">
+            <label>Retirement Duration (years) (auto from ages)</label>
+            <input id="retDurationYears" type="number" step="1" value="25" />
+          </div>
+
+          <!-- SWP -->
+          <div class="field w4" id="field-swp-withdraw" style="display:none;">
+            <label>Monthly Withdrawal (₹)</label>
+            <input id="swpWithdraw" type="number" step="1" value="40000" />
+          </div>
+
+          <div class="field w4" id="field-swp-initial" style="display:none;">
+            <label>Initial Investment (₹)</label>
+            <input id="swpInitial" type="number" step="1" value="3000000" />
+          </div>
+
+          <div class="field w12">
+            <div class="actions">
+              <button class="primary" id="btnCalc">Calculate</button>
+              <button class="ghost" id="btnResetCalc">Reset</button>
+              <span class="pill"><span>Effective Return:</span> <strong id="effRetLabel">—</strong></span>
+              <span class="pill"><span>Total Invested:</span> <strong id="navLabel">—</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card result-card" style="margin-top:12px; box-shadow: var(--shadow-sm);">
+          <h2 style="font-size:14px;margin:0 0 6px;">Results Summary</h2>
+          <div class="tiny">Clear breakdown of what the tool computed.</div>
+          <div class="kpis" id="calcKpis"></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="split">
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Cashflow Table</h2>
+            <div class="tiny">Yearly summary (SIP aggregates monthly).</div>
+            <div style="overflow:auto; max-height: 360px;">
+              <table id="cashflowTable">
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>Invested (₹)</th>
+                    <th>Value Before Exit Fees (₹)</th>
+                    <th>Exit Fees (₹)</th>
+                    <th>Final Value (₹)</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Chart</h2>
+            <div class="tiny">Final value over time (after exit fees).</div>
+            <canvas id="calcChart" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Formula Notes (Full names)</h2>
+        <div class="note">
+          <b>Common:</b><br/>
+          • <b>Effective annual return</b> = <span class="mono">Expected Return − Expense Ratio</span><br/>
+          • <b>Monthly return rate</b> = <span class="mono">(Effective annual return / 100) ÷ 12</span><br/>
+          • <b>Exit fee rate</b> = <span class="mono">(Brokerage% + Exit Load%) / 100</span><br/>
+          • <b>Exit fee</b> = <span class="mono">Value at exit × Exit fee rate</span><br/>
+          • <b>Final value</b> = <span class="mono">Value at exit − Exit fee</span><br/>
+
+          <div class="hr"></div>
+
+          <b>SIP (monthly) future value (end-of-month approximation):</b><br/>
+          Monthly SIP = <span class="mono">P</span>, months = <span class="mono">n</span>, monthly rate = <span class="mono">m</span><br/>
+          <span class="mono">Future Value = P × [((1+m)^n − 1)/m] × (1+m)</span><br/>
+
+          <div class="hr"></div>
+
+          <b>Lumpsum future value:</b><br/>
+          Principal = <span class="mono">P</span>, years = <span class="mono">Y</span>, effective annual rate = <span class="mono">a</span><br/>
+          <span class="mono">Future Value = P × (1+a)^Y</span><br/>
+
+          <div class="hr"></div>
+
+          <b>SWP simulation (monthly loop):</b><br/>
+          Portfolio value = <span class="mono">V</span>, withdrawal = <span class="mono">W</span><br/>
+          Each month: <span class="mono">V ← V×(1+m) − W</span> (stops at depletion).<br/>
+
+          <div class="hr"></div>
+
+          <b>Retirement plan (if target corpus not provided):</b><br/>
+          Monthly expense at retirement = <span class="mono">Expense Today × (1+Inflation)^Years-to-Retire</span><br/>
+          Annual need = <span class="mono">12 × Monthly expense at retirement</span><br/>
+          Real return (approx) = <span class="mono">Post-ret return − Inflation</span><br/>
+          Target corpus ≈ <span class="mono">Annual need × (1 − (1+Real return)^(-Retirement years)) / Real return</span><br/>
+          Existing retirement corpus reduces the SIP requirement (grown until retirement).<br/>
+        </div>
+
+        <div class="hr"></div>
+        <h2 style="font-size:14px;">Quick Tips</h2>
+        <div class="note">
+          <div class="badge">Add Tax Estimation (STCG/LTCG)</div>
+          <div class="badge">Rebalance Simulator</div>
+          <div class="badge">Goal Buckets</div>
+          <div class="badge">Manual XIRR</div>
+          <div class="badge">Inflation-adjusted returns</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUNDAMENTALS -->
+  <section class="section" id="sec-fundamentals">
+    <div class="grid">
+      <div class="card">
+        <h2>Fundamental Analysis (Manual)</h2>
+        <div class="muted">Enter ratios manually. The tool generates remarks + a simple score (editable in code).</div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div class="field w6">
+            <label>Company Name (optional)</label>
+            <input id="faName" placeholder="e.g., HDFC Bank" />
+          </div>
+          <div class="field w6">
+            <label>Sector (optional)</label>
+            <input id="faSector" placeholder="e.g., Banking" />
+          </div>
+
+          <div class="field">
+            <label>Price-to-Earnings (P/E)</label>
+            <input id="faPE" type="number" step="0.01" placeholder="e.g., 18" />
+          </div>
+          <div class="field">
+            <label>Price-to-Book (P/B)</label>
+            <input id="faPB" type="number" step="0.01" placeholder="e.g., 2.4" />
+          </div>
+          <div class="field">
+            <label>Return on Equity (ROE) %</label>
+            <input id="faROE" type="number" step="0.01" placeholder="e.g., 15" />
+          </div>
+          <div class="field">
+            <label>Return on Capital Employed (ROCE) %</label>
+            <input id="faROCE" type="number" step="0.01" placeholder="e.g., 18" />
+          </div>
+
+          <div class="field">
+            <label>Debt-to-Equity</label>
+            <input id="faDE" type="number" step="0.01" placeholder="e.g., 0.4" />
+          </div>
+          <div class="field">
+            <label>Operating Margin %</label>
+            <input id="faOPM" type="number" step="0.01" placeholder="e.g., 22" />
+          </div>
+          <div class="field">
+            <label>Net Margin %</label>
+            <input id="faNPM" type="number" step="0.01" placeholder="e.g., 12" />
+          </div>
+          <div class="field">
+            <label>Sales Growth (3Y) %</label>
+            <input id="faSG" type="number" step="0.01" placeholder="e.g., 14" />
+          </div>
+
+          <div class="field">
+            <label>Profit Growth (3Y) %</label>
+            <input id="faPG" type="number" step="0.01" placeholder="e.g., 16" />
+          </div>
+          <div class="field">
+            <label>Free Cash Flow Positive? (1=yes, 0=no)</label>
+            <input id="faFCF" type="number" step="1" placeholder="1 or 0" />
+          </div>
+
+          <div class="field w6">
+            <label>Notes (optional)</label>
+            <textarea id="faNotes" placeholder="Anything you want to remember…"></textarea>
+          </div>
+
+          <div class="field w6">
+            <label>Saved Analyses (Local)</label>
+            <select id="faSaved"></select>
+            <div class="actions">
+              <button class="primary" id="faEvaluate">Evaluate</button>
+              <button class="ghost" id="faSave">Save</button>
+              <button class="ghost" id="faLoad">Load</button>
+              <button class="ghost" id="faDelete">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+        <div class="kpis" id="faKpis"></div>
+
+        <div class="hr"></div>
+        <h2 style="font-size:14px;">Remarks</h2>
+        <div class="note" id="faRemarks">Enter ratios and click “Evaluate”.</div>
+      </div>
+
+      <div class="card">
+        <h2>Fundamental formulas + scoring logic</h2>
+        <div class="note">
+          <b>Definitions:</b><br/>
+          • P/E = Market Price per Share / Earnings per Share<br/>
+          • P/B = Market Price per Share / Book Value per Share<br/>
+          • ROE% = (Net Income / Shareholders’ Equity) × 100<br/>
+          • ROCE% = (EBIT / Capital Employed) × 100<br/>
+          • Debt-to-Equity = Total Debt / Total Equity<br/>
+          • Operating Margin% = (Operating Profit / Revenue) × 100<br/>
+          • Net Margin% = (Net Profit / Revenue) × 100<br/>
+          • 3Y Growth% ≈ CAGR = ((End/Start)^(1/3) − 1) × 100<br/>
+          • Free Cash Flow = Cash Flow from Operations − Capital Expenditure<br/>
+
+          <div class="hr"></div>
+
+          <b>Score model used (simple):</b><br/>
+          <div class="badge">ROE ≥ 15% (weight 2)</div>
+          <div class="badge">ROCE ≥ 15% (weight 2)</div>
+          <div class="badge">Debt/Equity ≤ 0.8 (weight 2)</div>
+          <div class="badge">3Y Sales ≥ 10% (weight 1)</div>
+          <div class="badge">3Y Profit ≥ 10% (weight 1)</div>
+          <div class="badge">Operating Margin ≥ 12% (weight 1)</div>
+          <div class="badge">Net Margin ≥ 8% (weight 1)</div>
+          <div class="badge">P/E ≤ 25 (weight 1)</div>
+          <div class="badge">P/B ≤ 5 (weight 1)</div>
+          <div class="badge">Free Cash Flow positive (weight 1)</div>
+
+          <div class="hr"></div>
+          <b>Grade mapping:</b><br/>
+          Strong: score% ≥ 70% • Weak: score% ≤ 40% • Otherwise: Neutral
+        </div>
+
+        <div class="hr"></div>
+        <h2 style="font-size:14px;">Export fundamentals</h2>
+        <div class="actions">
+          <button class="primary" id="faExportAll">Download All (JSON)</button>
+          <label class="tab" style="cursor:pointer;">
+            Upload JSON
+            <input id="faImportFile" type="file" accept="application/json" style="display:none;" />
+          </label>
+        </div>
+        <div class="tiny">Exports/imports only what you saved locally.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section class="section" id="sec-portfolio">
+    <div class="grid">
+      <div class="card">
+        <h2>Portfolio (Local JSON)</h2>
+        <div class="muted">Track holdings locally. Add/update manually. Import/export JSON to move across devices.</div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div class="field w4">
+            <label>Asset Name</label>
+            <input id="pName" placeholder="e.g., NIFTY 50 Index Fund" />
+          </div>
+          <div class="field w4">
+            <label>Type</label>
+            <select id="pType">
+              <option>Equity</option>
+              <option>Mutual Fund</option>
+              <option>ETF</option>
+              <option>Debt</option>
+              <option>Gold</option>
+              <option>Crypto</option>
+              <option>Cash</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field w4">
+            <label>Units / Quantity</label>
+            <input id="pUnits" type="number" step="0.0001" value="10" />
+          </div>
+          <div class="field w4">
+            <label>Average Buy Price (₹)</label>
+            <input id="pAvg" type="number" step="0.01" value="100" />
+          </div>
+          <div class="field w4">
+            <label>Current Price (₹)</label>
+            <input id="pCur" type="number" step="0.01" value="120" />
+          </div>
+          <div class="field w4">
+            <label>Brokerage % (sell)</label>
+            <input id="pBroker" type="number" step="0.01" value="0" />
+          </div>
+
+          <div class="field w12">
+            <div class="actions">
+              <button class="primary" id="pAdd">Add / Update</button>
+              <button class="ghost" id="pClear">Clear Fields</button>
+              <button class="ghost" id="pResetAll">Reset Portfolio</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="kpis" id="pKpis"></div>
+
+        <div style="overflow:auto; max-height: 380px;">
+          <table id="pTable">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Type</th>
+                <th>Units</th>
+                <th>Avg (₹)</th>
+                <th>Current (₹)</th>
+                <th>Invested (₹)</th>
+                <th>Value (₹)</th>
+                <th>P/L (₹)</th>
+                <th>P/L %</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="hr"></div>
+        <div class="actions">
+          <button class="primary" id="pExport">Download Portfolio (JSON)</button>
+          <label class="tab" style="cursor:pointer;">
+            Upload Portfolio JSON
+            <input id="pImportFile" type="file" accept="application/json" style="display:none;" />
+          </label>
+        </div>
+        <div class="tiny">
+          Portfolio formulas:
+          <span class="mono">Invested = Units × Avg</span> •
+          <span class="mono">Value = Units × Current</span> •
+          <span class="mono">Profit/Loss = Value − Invested</span> •
+          <span class="mono">Profit/Loss% = (Profit/Loss ÷ Invested) × 100</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Charts</h2>
+        <div class="split">
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Allocation by Type</h2>
+            <canvas id="allocChart" height="220"></canvas>
+          </div>
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Profit/Loss by Asset</h2>
+            <canvas id="plChart" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+        <div class="note">
+          Next improvement idea: add target allocation (Equity/Debt/Gold etc.) and show drift + suggested rebalance amounts.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNICAL ANALYSIS -->
+  <section class="section" id="sec-technical">
+    <div class="grid">
+      <div class="card">
+        <h2>Technical Analysis (Manual prices • No APIs)</h2>
+        <div class="note">
+          Paste your own price series (CSV). This runs entirely in your browser.
+          <div class="hr"></div>
+          <b>Input formats supported:</b><br/>
+          • One number per line: <span class="mono">close</span><br/>
+          • Or CSV rows: <span class="mono">date,close</span> (date is used for labels)
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div class="field w8">
+            <label>Price Series (paste)</label>
+            <textarea id="taPrices" class="mono" placeholder="2025-01-01,100&#10;2025-01-02,102&#10;..."></textarea>
+          </div>
+
+          <div class="field w4">
+            <label>Quick sample</label>
+            <div class="actions" style="margin-top:0;">
+              <button class="ghost" id="taLoadSample">Load Sample</button>
+              <button class="ghost" id="taClear">Clear</button>
+            </div>
+            <div class="hr"></div>
+
+            <label>Indicator settings</label>
+            <div class="tiny">Defaults are common. Change and recompute.</div>
+
+            <div class="hr"></div>
+            <label>Simple Moving Average period</label>
+            <input id="taSmaN" type="number" step="1" value="20" />
+
+            <label style="margin-top:8px;">Exponential Moving Average period</label>
+            <input id="taEmaN" type="number" step="1" value="20" />
+
+            <label style="margin-top:8px;">Relative Strength Index period</label>
+            <input id="taRsiN" type="number" step="1" value="14" />
+
+            <label style="margin-top:8px;">MACD (fast, slow, signal)</label>
+            <div class="row" style="gap:8px;">
+              <div class="field" style="grid-column: span 4;"><input id="taMacdFast" type="number" step="1" value="12" /></div>
+              <div class="field" style="grid-column: span 4;"><input id="taMacdSlow" type="number" step="1" value="26" /></div>
+              <div class="field" style="grid-column: span 4;"><input id="taMacdSignal" type="number" step="1" value="9" /></div>
+            </div>
+
+            <label style="margin-top:8px;">Bollinger Bands (period, standard deviations)</label>
+            <div class="row" style="gap:8px;">
+              <div class="field" style="grid-column: span 6;"><input id="taBbN" type="number" step="1" value="20" /></div>
+              <div class="field" style="grid-column: span 6;"><input id="taBbK" type="number" step="0.1" value="2" /></div>
+            </div>
+          </div>
+
+          <div class="field w12">
+            <div class="actions">
+              <button class="primary" id="taCompute">Compute & Plot</button>
+              <span class="pill"><span>Last Close:</span> <strong id="taLastClose">—</strong></span>
+              <span class="pill"><span>Trend (SMA):</span> <strong id="taTrend">—</strong></span>
+              <span class="pill"><span>RSI:</span> <strong id="taLastRsi">—</strong></span>
+              <span class="pill"><span>MACD:</span> <strong id="taLastMacd">—</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpis" id="taKpis"></div>
+
+        <div class="hr"></div>
+
+        <div class="split">
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Price + Moving Averages + Bollinger</h2>
+            <canvas id="taPriceChart" height="220"></canvas>
+          </div>
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Relative Strength Index</h2>
+            <canvas id="taRsiChart" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="split">
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">MACD</h2>
+            <canvas id="taMacdChart" height="220"></canvas>
+          </div>
+          <div class="card" style="box-shadow:none; border-style:dashed;">
+            <h2 style="font-size:14px;margin-bottom:6px;">Support / Resistance (simple)</h2>
+            <div class="tiny">Computed from local swing highs/lows (window=2) and recent range.</div>
+            <div class="kpis" id="taSR"></div>
+            <div class="note" id="taSignals">Click “Compute & Plot” to see signals.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Technical formulas (Full names)</h2>
+        <div class="note">
+          <b>Input:</b> Close prices (C[t])<br/>
+
+          <div class="hr"></div>
+          <b>Simple Moving Average:</b><br/>
+          <span class="mono">SMA[t] = average of last N closes</span><br/>
+
+          <div class="hr"></div>
+          <b>Exponential Moving Average:</b><br/>
+          Smoothing factor: <span class="mono">Alpha = 2/(N+1)</span><br/>
+          <span class="mono">EMA[t] = Alpha×Close[t] + (1−Alpha)×EMA[t−1]</span><br/>
+
+          <div class="hr"></div>
+          <b>Relative Strength Index (Wilder’s):</b><br/>
+          Uses smoothed average gains and losses over N periods, then:<br/>
+          <span class="mono">RSI = 100 − 100/(1+RS)</span><br/>
+
+          <div class="hr"></div>
+          <b>MACD:</b><br/>
+          <span class="mono">MACD Line = Fast EMA − Slow EMA</span><br/>
+          <span class="mono">Signal Line = EMA of MACD Line</span><br/>
+          <span class="mono">Histogram = MACD Line − Signal Line</span><br/>
+
+          <div class="hr"></div>
+          <b>Bollinger Bands:</b><br/>
+          <span class="mono">Middle Band = SMA</span><br/>
+          <span class="mono">Upper Band = Middle + K×StdDev</span><br/>
+          <span class="mono">Lower Band = Middle − K×StdDev</span><br/>
+        </div>
+
+        <div class="hr"></div>
+        <h2 style="font-size:14px;">Notes</h2>
+        <div class="note">
+          This is for education and personal analysis. It does not fetch live market data.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HELP -->
+  <section class="section" id="sec-help">
+    <div class="card">
+      <h2>How this app is organized</h2>
+      <div class="note">
+        This single HTML file contains multiple <b>pages (tabs)</b>:
+        <div class="hr"></div>
+        <b>• Calculators</b><br/>
+        SIP, Lumpsum, Retirement Plan (age-based), and SWP. Shows results summary + cashflow table + chart.<br/>
+        <div class="hr"></div>
+        <b>• Fundamentals</b><br/>
+        Manual ratio entry with remarks and a simple score. Saved locally (LocalStorage) with JSON import/export.<br/>
+        <div class="hr"></div>
+        <b>• Portfolio</b><br/>
+        Local holdings tracker with allocation and profit/loss charts. Import/export holdings as JSON.<br/>
+        <div class="hr"></div>
+        <b>• Technical</b><br/>
+        Paste your own price series to compute SMA/EMA/RSI/MACD/Bollinger + basic support/resistance.
+      </div>
+
+      <div class="hr"></div>
+      <h2 style="font-size:14px;">Privacy</h2>
+      <div class="muted">
+        Everything is stored only in your browser (LocalStorage) or in JSON files you download. No data is sent anywhere by this page.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* -------------------------
+   Helpers
+--------------------------*/
+const fmtINR = (n) => {
+  if (!isFinite(n)) return "—";
+  try { return n.toLocaleString("en-IN", { maximumFractionDigits: 0 }); }
+  catch { return String(Math.round(n)); }
+};
+const fmt2 = (n) => (isFinite(n) ? n.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "—");
+const pct = (n) => (isFinite(n) ? `${n.toFixed(2)}%` : "—");
+const clamp0 = (x) => Math.max(0, x);
+
+function readNum(id, fallback=0){
+  const v = Number(document.getElementById(id).value);
+  return Number.isFinite(v) ? v : fallback;
+}
+function setText(id, text){ document.getElementById(id).textContent = text; }
+
+function downloadJSON(filename, obj){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function readFileAsJSON(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      try { resolve(JSON.parse(r.result)); }
+      catch(e){ reject(e); }
+    };
+    r.onerror = reject;
+    r.readAsText(file);
+  });
+}
+function escapeHtml(s){
+  return (s||"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+function renderKpis(items, containerId){
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  items.forEach(({label, value, tone}) => {
+    const span = document.createElement("span");
+    span.className = "pill";
+    const v = document.createElement("strong");
+    v.textContent = value;
+    if (tone) v.classList.add(tone);
+    span.innerHTML = `<span>${label}</span>`;
+    span.appendChild(v);
+    el.appendChild(span);
+  });
+}
+
+/* -------------------------
+   Tabs
+--------------------------*/
+const TAB_DEFS = [
+  { id:"sec-calculators", label:"Calculators" },
+  { id:"sec-fundamentals", label:"Fundamentals" },
+  { id:"sec-portfolio", label:"Portfolio" },
+  { id:"sec-technical", label:"Technical" },
+  { id:"sec-help", label:"Help" },
+];
+
+const tabsEl = document.getElementById("tabs");
+TAB_DEFS.forEach((t, i) => {
+  const b = document.createElement("div");
+  b.className = "tab" + (i===0 ? " active" : "");
+  b.textContent = t.label;
+  b.addEventListener("click", () => activateTab(t.id, b));
+  tabsEl.appendChild(b);
+});
+
+function activateTab(sectionId, tabBtn){
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(sectionId).classList.add("active");
+  document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+  tabBtn.classList.add("active");
+}
+
+/* -------------------------
+   Calculator logic
+--------------------------*/
+const calcTypeEl = document.getElementById("calcType");
+const yearsEl = document.getElementById("years");
+const monthsEl = document.getElementById("months");
+let calcChart;
+
+function syncMonths(){
+  const y = clamp0(readNum("years", 0));
+  monthsEl.value = Math.round(y * 12);
+}
+yearsEl.addEventListener("input", syncMonths);
+syncMonths();
+
+function effectiveAnnualReturn(){
+  const expected = readNum("retPA", 0);
+  const expenseRatio = readNum("expPA", 0);
+  return expected - expenseRatio; // simplified
+}
+function updateEffRetLabel(){
+  setText("effRetLabel", pct(effectiveAnnualReturn()));
+}
+document.getElementById("retPA").addEventListener("input", updateEffRetLabel);
+document.getElementById("expPA").addEventListener("input", updateEffRetLabel);
+updateEffRetLabel();
+
+function calcExitFees(value){
+  const brokerage = readNum("brokerPct", 0)/100;
+  const exitLoad = readNum("exitLoadPct", 0)/100;
+  return clamp0(value * (brokerage + exitLoad));
+}
+
+function sipFutureValue(monthlyContribution, annualRatePct, months){
+  const monthlyRate = (annualRatePct/100)/12;
+  if (months <= 0) return 0;
+  if (Math.abs(monthlyRate) < 1e-12) return monthlyContribution * months;
+  return monthlyContribution * (((Math.pow(1+monthlyRate, months) - 1)/monthlyRate) * (1+monthlyRate));
+}
+function lumpsumFutureValue(principal, annualRatePct, years){
+  const annualRate = annualRatePct/100;
+  return principal * Math.pow(1+annualRate, years);
+}
+
+function buildYearSeriesFromMonthlyContribution(monthlyContribution, effectiveAnnualPct, years){
+  const months = Math.round(years*12);
+  const monthlyRate = (effectiveAnnualPct/100)/12;
+  let value = 0;
+  let invested = 0;
+  const series = [];
+  for (let m=1; m<=months; m++){
+    invested += monthlyContribution;
+    value = (value + monthlyContribution) * (1 + monthlyRate);
+    if (m % 12 === 0){
+      series.push({year: m/12, invested, value});
+    }
+  }
+  return series;
+}
+function buildYearSeriesLumpsum(principal, effectiveAnnualPct, years){
+  const annualRate = effectiveAnnualPct/100;
+  const series = [];
+  for (let y=1; y<=years; y++){
+    series.push({year:y, invested:principal, value: principal*Math.pow(1+annualRate, y)});
+  }
+  return series;
+}
+function buildYearSeriesSWP(initial, withdrawMonthly, effectiveAnnualPct, years){
+  const months = Math.round(years*12);
+  const monthlyRate = (effectiveAnnualPct/100)/12;
+  let value = initial;
+  const series = [];
+  const invested = initial;
+  for (let m=1; m<=months; m++){
+    value = value * (1 + monthlyRate);
+    value -= withdrawMonthly;
+    if (m % 12 === 0){
+      series.push({year: m/12, invested, value: Math.max(0, value)});
+    }
+    if (value <= 0) break;
+  }
+  return series;
+}
+
+function retirementPlan({
+  targetCorpus,
+  monthlyExpenseToday,
+  inflationPct,
+  currentAge,
+  retirementAge,
+  lifeExpectancy,
+  preRetEffectiveAnnualPct,
+  postRetAnnualPct,
+  existingCorpus
+}){
+  const yearsToRetire = Math.max(0, retirementAge - currentAge);
+  const retirementYears = Math.max(0, lifeExpectancy - retirementAge);
+
+  // show in UI field (editable, but we refresh when calculating)
+  document.getElementById("retDurationYears").value = retirementYears;
+  document.getElementById("years").value = yearsToRetire;
+  syncMonths();
+
+  const inflation = inflationPct/100;
+  const post = postRetAnnualPct/100;
+
+  const monthlyExpenseAtRetirement = monthlyExpenseToday * Math.pow(1+inflation, yearsToRetire);
+  const annualNeedAtRetirement = monthlyExpenseAtRetirement * 12;
+
+  let inferredTarget = targetCorpus;
+  if (!(targetCorpus > 0)){
+    const real = post - inflation;
+    if (Math.abs(real) < 1e-9){
+      inferredTarget = annualNeedAtRetirement * retirementYears;
+    } else {
+      inferredTarget = annualNeedAtRetirement * (1 - Math.pow(1+real, -retirementYears)) / real;
+    }
+  }
+
+  // Existing corpus grows until retirement at pre-ret effective return
+  const existingFVAtRetirement = existingCorpus > 0
+    ? lumpsumFutureValue(existingCorpus, preRetEffectiveAnnualPct, yearsToRetire)
+    : 0;
+
+  const requiredFVFromSIP = Math.max(0, inferredTarget - existingFVAtRetirement);
+
+  const months = Math.round(yearsToRetire*12);
+  const monthlyRate = (preRetEffectiveAnnualPct/100)/12;
+
+  let requiredMonthlySIP = 0;
+  if (months > 0){
+    if (Math.abs(monthlyRate) < 1e-12) requiredMonthlySIP = requiredFVFromSIP / months;
+    else requiredMonthlySIP = requiredFVFromSIP / ((((Math.pow(1+monthlyRate, months)-1)/monthlyRate) * (1+monthlyRate)));
+  }
+
+  return {
+    yearsToRetire,
+    retirementYears,
+    monthlyExpenseAtRetirement,
+    annualNeedAtRetirement,
+    targetCorpus: inferredTarget,
+    existingFVAtRetirement,
+    requiredFVFromSIP,
+    requiredMonthlySIP
+  };
+}
+
+function renderCashflowTable(series){
+  const tbody = document.querySelector("#cashflowTable tbody");
+  tbody.innerHTML = "";
+  series.forEach(pt => {
+    const fee = calcExitFees(pt.value);
+    const finalV = Math.max(0, pt.value - fee);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${pt.year}</td>
+      <td>${fmtINR(pt.invested)}</td>
+      <td>${fmtINR(pt.value)}</td>
+      <td>${fmtINR(fee)}</td>
+      <td><b>${fmtINR(finalV)}</b></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCalcChart(series){
+  const ctx = document.getElementById("calcChart");
+  const labels = series.map(s => `Y${s.year}`);
+  const values = series.map(s => Math.max(0, s.value - calcExitFees(s.value)));
+  if (calcChart) calcChart.destroy();
+  calcChart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets: [{ label:"Final value (after exit fees)", data: values, tension: .25 }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+      scales: { y: { ticks: { callback: (v)=> fmtINR(v) } } }
+    }
+  });
+}
+
+function updateCalcUI(){
+  const type = calcTypeEl.value;
+  const show = (id, yes) => document.getElementById(id).style.display = yes ? "" : "none";
+
+  show("field-sip-amt", type==="sip");
+  show("field-lump-amt", type==="lumpsum");
+
+  // Retirement fields
+  const isRet = type==="retirement";
+  show("field-ret-curage", isRet);
+  show("field-ret-age", isRet);
+  show("field-ret-life", isRet);
+  show("field-ret-existing", isRet);
+  show("field-ret-target", isRet);
+  show("field-ret-monthlyexp", isRet);
+  show("field-ret-infl", isRet);
+  show("field-ret-post", isRet);
+  show("field-ret-years", isRet);
+
+  // SWP fields
+  show("field-swp-withdraw", type==="swp");
+  show("field-swp-initial", type==="swp");
+
+  // Years input: editable for non-retirement, derived for retirement
+  document.getElementById("years").disabled = isRet;
+  document.getElementById("retDurationYears").disabled = true; // derived from ages
+}
+calcTypeEl.addEventListener("change", updateCalcUI);
+updateCalcUI();
+
+/* Age input hooks (keep years/duration in sync) */
+function syncAgesToYears(){
+  const currentAge = readNum("curAge", 0);
+  const retirementAge = readNum("retAge", 0);
+  const lifeAge = readNum("lifeAge", 0);
+
+  const yearsToRetire = Math.max(0, retirementAge - currentAge);
+  const retirementYears = Math.max(0, lifeAge - retirementAge);
+
+  document.getElementById("years").value = yearsToRetire;
+  document.getElementById("retDurationYears").value = retirementYears;
+  syncMonths();
+}
+["curAge","retAge","lifeAge"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", () => {
+    if (calcTypeEl.value === "retirement") syncAgesToYears();
+  });
+});
+
+document.getElementById("btnResetCalc").addEventListener("click", () => {
+  document.getElementById("retPA").value = 12;
+  document.getElementById("expPA").value = 1.0;
+  document.getElementById("brokerPct").value = 0;
+  document.getElementById("exitLoadPct").value = 0;
+
+  document.getElementById("years").value = 10;
+  document.getElementById("sipAmt").value = 10000;
+  document.getElementById("lumpAmt").value = 500000;
+
+  document.getElementById("curAge").value = 30;
+  document.getElementById("retAge").value = 60;
+  document.getElementById("lifeAge").value = 85;
+  document.getElementById("retExistingCorpus").value = 0;
+  document.getElementById("retTarget").value = 0;
+  document.getElementById("retMonthlyExp").value = 80000;
+  document.getElementById("inflPA").value = 6;
+  document.getElementById("postRetPA").value = 8;
+
+  document.getElementById("retDurationYears").value = 25;
+
+  document.getElementById("swpWithdraw").value = 40000;
+  document.getElementById("swpInitial").value = 3000000;
+
+  syncMonths();
+  updateEffRetLabel();
+  setText("navLabel", "—");
+  renderKpis([], "calcKpis");
+  document.querySelector("#cashflowTable tbody").innerHTML = "";
+  if (calcChart) { calcChart.destroy(); calcChart = null; }
+});
+
+document.getElementById("btnCalc").addEventListener("click", () => {
+  const type = calcTypeEl.value;
+  const eff = effectiveAnnualReturn();
+
+  let years = clamp0(readNum("years", 0));
+  let months = Math.round(years*12);
+  monthsEl.value = months;
+
+  let totalInvested = 0;
+  let series = [];
+  let headline = [];
+
+  if (type === "sip"){
+    const monthlySIP = clamp0(readNum("sipAmt", 0));
+    totalInvested = monthlySIP * months;
+
+    series = buildYearSeriesFromMonthlyContribution(monthlySIP, eff, years);
+    const last = series[series.length-1] || {invested:totalInvested, value: sipFutureValue(monthlySIP, eff, months)};
+    const exitFee = calcExitFees(last.value);
+    const finalValue = Math.max(0, last.value - exitFee);
+    const gain = finalValue - totalInvested;
+    const gainPct = totalInvested>0 ? (gain/totalInvested)*100 : 0;
+
+    // Removed duplicate NAV KPI; NAV is shown in the top pill.
+    headline = [
+      {label:"Final Value", value:`₹${fmtINR(finalValue)}`, tone: gain>=0 ? "good" : "bad"},
+      {label:"Total Gain", value:`₹${fmtINR(gain)}`, tone: gain>=0 ? "good" : "bad"},
+      {label:"Gain %", value: pct(gainPct), tone: gainPct>=0 ? "good" : "bad"},
+      {label:"Exit Fees", value:`₹${fmtINR(exitFee)}`, tone: exitFee>0 ? "warn" : "" },
+    ];
+
+  } else if (type === "lumpsum"){
+    const principal = clamp0(readNum("lumpAmt", 0));
+    totalInvested = principal;
+
+    series = buildYearSeriesLumpsum(principal, eff, Math.round(years));
+    const last = series[series.length-1] || {invested:principal, value: lumpsumFutureValue(principal, eff, years)};
+    const exitFee = calcExitFees(last.value);
+    const finalValue = Math.max(0, last.value - exitFee);
+    const gain = finalValue - principal;
+    const gainPct = principal>0 ? (gain/principal)*100 : 0;
+
+    headline = [
+      {label:"Final Value", value:`₹${fmtINR(finalValue)}`, tone: gain>=0 ? "good" : "bad"},
+      {label:"Total Gain", value:`₹${fmtINR(gain)}`, tone: gain>=0 ? "good" : "bad"},
+      {label:"Gain %", value: pct(gainPct), tone: gainPct>=0 ? "good" : "bad"},
+      {label:"Exit Fees", value:`₹${fmtINR(exitFee)}`, tone: exitFee>0 ? "warn" : "" },
+    ];
+
+  } else if (type === "swp"){
+    const initial = clamp0(readNum("swpInitial", 0));
+    const withdrawal = clamp0(readNum("swpWithdraw", 0));
+    totalInvested = initial;
+
+    series = buildYearSeriesSWP(initial, withdrawal, eff, years);
+    const last = series[series.length-1] || {invested:initial, value: initial};
+    const exitFee = calcExitFees(last.value);
+    const endValue = Math.max(0, last.value - exitFee);
+
+    const yearsSimulated = series.length ? series[series.length-1].year : 0;
+    const monthsSimulated = Math.round(yearsSimulated*12);
+    const totalWithdrawn = monthsSimulated * withdrawal;
+
+    headline = [
+      {label:"Total Withdrawn", value:`₹${fmtINR(totalWithdrawn)}`},
+      {label:"End Value", value:`₹${fmtINR(endValue)}`, tone: endValue>0 ? "good" : "bad"},
+      {label:"Years Simulated", value:`${yearsSimulated}`, tone: yearsSimulated >= years ? "good" : "warn"},
+      {label:"Exit Fees (if liquidated)", value:`₹${fmtINR(exitFee)}`, tone: exitFee>0 ? "warn" : "" },
+    ];
+
+  } else if (type === "retirement"){
+    const currentAge = clamp0(readNum("curAge", 0));
+    const retirementAge = clamp0(readNum("retAge", 0));
+    const lifeExpectancy = clamp0(readNum("lifeAge", 0));
+
+    const target = clamp0(readNum("retTarget", 0));
+    const expenseToday = clamp0(readNum("retMonthlyExp", 0));
+    const inflation = clamp0(readNum("inflPA", 0));
+    const postRet = clamp0(readNum("postRetPA", 0));
+    const existingCorpus = clamp0(readNum("retExistingCorpus", 0));
+
+    const plan = retirementPlan({
+      targetCorpus: target,
+      monthlyExpenseToday: expenseToday,
+      inflationPct: inflation,
+      currentAge,
+      retirementAge,
+      lifeExpectancy,
+      preRetEffectiveAnnualPct: eff,
+      postRetAnnualPct: postRet,
+      existingCorpus
+    });
+
+    years = plan.yearsToRetire;
+    months = Math.round(years*12);
+    monthsEl.value = months;
+
+    const sipNeeded = plan.requiredMonthlySIP;
+    totalInvested = (sipNeeded * months) + existingCorpus; // includes existing corpus for "your total invested"
+
+    series = buildYearSeriesFromMonthlyContribution(sipNeeded, eff, years);
+
+    headline = [
+      {label:"Years to Retire", value:`${plan.yearsToRetire}`},
+      {label:"Retirement Duration", value:`${plan.retirementYears} years`},
+      {label:"Expense at Retirement (monthly)", value:`₹${fmtINR(plan.monthlyExpenseAtRetirement)}`},
+      {label:"Target Corpus", value:`₹${fmtINR(plan.targetCorpus)}`},
+      {label:"Existing Corpus (FV at retirement)", value:`₹${fmtINR(plan.existingFVAtRetirement)}`, tone: plan.existingFVAtRetirement>0 ? "good" : "" },
+      {label:"Corpus still needed (at retirement)", value:`₹${fmtINR(plan.requiredFVFromSIP)}`, tone: "warn" },
+      {label:"Required Monthly SIP", value:`₹${fmtINR(plan.requiredMonthlySIP)}`, tone: "warn"},
+    ];
+  }
+
+  setText("navLabel", `₹${fmtINR(totalInvested)}`);
+  renderKpis(headline, "calcKpis");
+
+  if (series.length){
+    renderCashflowTable(series);
+    renderCalcChart(series);
+  } else {
+    document.querySelector("#cashflowTable tbody").innerHTML = "";
+    if (calcChart) { calcChart.destroy(); calcChart=null; }
+  }
+});
+
+/* -------------------------
+   Fundamentals (LocalStorage)
+--------------------------*/
+const LS_FA_KEY = "ptk_fundamentals_v1";
+function getFADb(){
+  try { return JSON.parse(localStorage.getItem(LS_FA_KEY) || "[]"); }
+  catch { return []; }
+}
+function setFADb(arr){
+  localStorage.setItem(LS_FA_KEY, JSON.stringify(arr));
+  refreshFASaved();
+}
+function refreshFASaved(){
+  const sel = document.getElementById("faSaved");
+  const db = getFADb();
+  sel.innerHTML = "";
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "— Select saved —";
+  sel.appendChild(opt0);
+  db.forEach((x, i) => {
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = `${x.name || "Untitled"}${x.sector ? " • "+x.sector : ""}`;
+    sel.appendChild(o);
+  });
+}
+refreshFASaved();
+
+function getFAInput(){
+  return {
+    name: document.getElementById("faName").value.trim(),
+    sector: document.getElementById("faSector").value.trim(),
+    pe: Number(document.getElementById("faPE").value),
+    pb: Number(document.getElementById("faPB").value),
+    roe: Number(document.getElementById("faROE").value),
+    roce: Number(document.getElementById("faROCE").value),
+    de: Number(document.getElementById("faDE").value),
+    opm: Number(document.getElementById("faOPM").value),
+    npm: Number(document.getElementById("faNPM").value),
+    sg: Number(document.getElementById("faSG").value),
+    pg: Number(document.getElementById("faPG").value),
+    fcf: Number(document.getElementById("faFCF").value),
+    notes: document.getElementById("faNotes").value.trim(),
+    ts: Date.now()
+  };
+}
+function scoreFundamentals(x){
+  let score = 0;
+  const remarks = [];
+  const add = (cond, goodMsg, badMsg, weight=1) => {
+    if (cond === null) return;
+    if (cond) { score += weight; remarks.push(`✅ ${goodMsg}`); }
+    else { remarks.push(`⚠️ ${badMsg}`); }
+  };
+  const has = (v) => Number.isFinite(v);
+
+  if (has(x.roe)) add(x.roe >= 15, `ROE ${x.roe}% is strong`, `ROE ${x.roe}% looks low`, 2);
+  if (has(x.roce)) add(x.roce >= 15, `ROCE ${x.roce}% is strong`, `ROCE ${x.roce}% looks low`, 2);
+
+  if (has(x.de)) add(x.de <= 0.8, `Debt/Equity ${x.de} is comfortable`, `Debt/Equity ${x.de} is high`, 2);
+
+  if (has(x.sg)) add(x.sg >= 10, `Sales growth ${x.sg}% looks healthy`, `Sales growth ${x.sg}% is modest`, 1);
+  if (has(x.pg)) add(x.pg >= 10, `Profit growth ${x.pg}% looks healthy`, `Profit growth ${x.pg}% is modest`, 1);
+
+  if (has(x.opm)) add(x.opm >= 12, `Operating margin ${x.opm}% is decent`, `Operating margin ${x.opm}% is thin`, 1);
+  if (has(x.npm)) add(x.npm >= 8, `Net margin ${x.npm}% is decent`, `Net margin ${x.npm}% is thin`, 1);
+
+  if (has(x.pe)){
+    if (x.pe <= 25) { score += 1; remarks.push(`✅ P/E ${x.pe} is not extreme (context matters).`); }
+    else { remarks.push(`⚠️ P/E ${x.pe} is high; justify with growth/quality.`); }
+  }
+  if (has(x.pb)){
+    if (x.pb <= 5) { score += 1; remarks.push(`✅ P/B ${x.pb} is not extreme (sector matters).`); }
+    else { remarks.push(`⚠️ P/B ${x.pb} is high; ensure ROE supports it.`); }
+  }
+
+  if (has(x.fcf)){
+    add(x.fcf >= 1, `Free cash flow is positive`, `Free cash flow may be weak/negative`, 1);
+  }
+
+  const maxScore = 12;
+  const pctScore = (score / maxScore) * 100;
+
+  let grade = "Neutral";
+  let tone = "warn";
+  if (pctScore >= 70) { grade = "Strong"; tone = "good"; }
+  else if (pctScore <= 40) { grade = "Weak"; tone = "bad"; }
+
+  return { score, maxScore, pctScore, grade, tone, remarks };
+}
+function renderFAEvaluation(x){
+  const ev = scoreFundamentals(x);
+  renderKpis([
+    {label:"Score", value:`${ev.score.toFixed(0)} / ${ev.maxScore}`, tone: ev.tone},
+    {label:"Score %", value:pct(ev.pctScore), tone: ev.tone},
+    {label:"Grade", value: ev.grade, tone: ev.tone},
+  ], "faKpis");
+
+  const out = document.getElementById("faRemarks");
+  const nameLine = (x.name || x.sector) ? `<b>${(escapeHtml(x.name)||"")}${x.sector? " • "+escapeHtml(x.sector):""}</b><br/><br/>` : "";
+  out.innerHTML =
+    nameLine +
+    ev.remarks.map(r => `• ${escapeHtml(r)}`).join("<br/>") +
+    (x.notes ? `<div class="hr"></div><div><b>Notes:</b><br/>${escapeHtml(x.notes).replaceAll("\n","<br/>")}</div>` : "");
+}
+
+document.getElementById("faEvaluate").addEventListener("click", () => renderFAEvaluation(getFAInput()));
+document.getElementById("faSave").addEventListener("click", () => {
+  const x = getFAInput();
+  if (!x.name && !x.sector){
+    alert("Add at least a Company Name or Sector before saving.");
+    return;
+  }
+  const db = getFADb();
+  db.unshift(x);
+  setFADb(db);
+  alert("Saved locally.");
+});
+document.getElementById("faLoad").addEventListener("click", () => {
+  const idx = document.getElementById("faSaved").value;
+  if (idx === "") return;
+  const db = getFADb();
+  const x = db[Number(idx)];
+  if (!x) return;
+
+  document.getElementById("faName").value = x.name || "";
+  document.getElementById("faSector").value = x.sector || "";
+  document.getElementById("faPE").value = Number.isFinite(x.pe) ? x.pe : "";
+  document.getElementById("faPB").value = Number.isFinite(x.pb) ? x.pb : "";
+  document.getElementById("faROE").value = Number.isFinite(x.roe) ? x.roe : "";
+  document.getElementById("faROCE").value = Number.isFinite(x.roce) ? x.roce : "";
+  document.getElementById("faDE").value = Number.isFinite(x.de) ? x.de : "";
+  document.getElementById("faOPM").value = Number.isFinite(x.opm) ? x.opm : "";
+  document.getElementById("faNPM").value = Number.isFinite(x.npm) ? x.npm : "";
+  document.getElementById("faSG").value = Number.isFinite(x.sg) ? x.sg : "";
+  document.getElementById("faPG").value = Number.isFinite(x.pg) ? x.pg : "";
+  document.getElementById("faFCF").value = Number.isFinite(x.fcf) ? x.fcf : "";
+  document.getElementById("faNotes").value = x.notes || "";
+  renderFAEvaluation(x);
+});
+document.getElementById("faDelete").addEventListener("click", () => {
+  const idx = document.getElementById("faSaved").value;
+  if (idx === "") return;
+  const db = getFADb();
+  db.splice(Number(idx), 1);
+  setFADb(db);
+  alert("Deleted.");
+});
+document.getElementById("faExportAll").addEventListener("click", () => downloadJSON("fundamentals.json", getFADb()));
+document.getElementById("faImportFile").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  try{
+    const json = await readFileAsJSON(f);
+    if (!Array.isArray(json)) throw new Error("Expected an array.");
+    const db = getFADb();
+    setFADb([...json, ...db]);
+    alert("Imported & merged.");
+  } catch(err){
+    alert("Import failed: " + err.message);
+  } finally {
+    e.target.value = "";
+  }
+});
+
+/* -------------------------
+   Portfolio (LocalStorage + Charts)
+--------------------------*/
+const LS_P_KEY = "ptk_portfolio_v1";
+let allocChart, plChart;
+
+function getPortfolio(){
+  try { return JSON.parse(localStorage.getItem(LS_P_KEY) || "[]"); }
+  catch { return []; }
+}
+function setPortfolio(arr){
+  localStorage.setItem(LS_P_KEY, JSON.stringify(arr));
+  renderPortfolio();
+}
+function portfolioRowFromInputs(){
+  return {
+    name: document.getElementById("pName").value.trim(),
+    type: document.getElementById("pType").value,
+    units: Number(document.getElementById("pUnits").value),
+    avg: Number(document.getElementById("pAvg").value),
+    cur: Number(document.getElementById("pCur").value),
+    broker: Number(document.getElementById("pBroker").value),
+  };
+}
+function calcHoldingMetrics(h){
+  const units = Number.isFinite(h.units) ? h.units : 0;
+  const avg = Number.isFinite(h.avg) ? h.avg : 0;
+  const cur = Number.isFinite(h.cur) ? h.cur : 0;
+  const invested = units * avg;
+  const value = units * cur;
+  const pl = value - invested;
+  const plPct = invested > 0 ? (pl/invested)*100 : 0;
+  return { invested, value, pl, plPct };
+}
+function renderPortfolio(){
+  const p = getPortfolio();
+  const tbody = document.querySelector("#pTable tbody");
+  tbody.innerHTML = "";
+
+  let totInv = 0, totVal = 0;
+  p.forEach((h, idx) => {
+    const m = calcHoldingMetrics(h);
+    totInv += m.invested;
+    totVal += m.value;
+    const tone = m.pl >= 0 ? "good" : "bad";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${escapeHtml(h.name || "Untitled")}</b></td>
+      <td>${escapeHtml(h.type || "Other")}</td>
+      <td>${fmt2(h.units)}</td>
+      <td>${fmt2(h.avg)}</td>
+      <td>${fmt2(h.cur)}</td>
+      <td>${fmtINR(m.invested)}</td>
+      <td>${fmtINR(m.value)}</td>
+      <td class="${tone}"><b>${fmtINR(m.pl)}</b></td>
+      <td class="${tone}">${pct(m.plPct)}</td>
+      <td class="right">
+        <button class="ghost" data-edit="${idx}">Edit</button>
+        <button class="ghost" data-del="${idx}">Del</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const totPL = totVal - totInv;
+  const totPLPct = totInv > 0 ? (totPL/totInv)*100 : 0;
+  renderKpis([
+    {label:"Total Invested", value:`₹${fmtINR(totInv)}`},
+    {label:"Total Value", value:`₹${fmtINR(totVal)}`},
+    {label:"Total Profit/Loss", value:`₹${fmtINR(totPL)}`, tone: totPL>=0 ? "good" : "bad"},
+    {label:"Profit/Loss %", value:pct(totPLPct), tone: totPLPct>=0 ? "good" : "bad"},
+  ], "pKpis");
+
+  tbody.querySelectorAll("button[data-edit]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.getAttribute("data-edit"));
+      const h = getPortfolio()[idx];
+      if (!h) return;
+      document.getElementById("pName").value = h.name || "";
+      document.getElementById("pType").value = h.type || "Other";
+      document.getElementById("pUnits").value = Number.isFinite(h.units) ? h.units : 0;
+      document.getElementById("pAvg").value = Number.isFinite(h.avg) ? h.avg : 0;
+      document.getElementById("pCur").value = Number.isFinite(h.cur) ? h.cur : 0;
+      document.getElementById("pBroker").value = Number.isFinite(h.broker) ? h.broker : 0;
+      document.getElementById("pName").dataset.editIndex = String(idx);
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+  });
+  tbody.querySelectorAll("button[data-del]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.getAttribute("data-del"));
+      const arr = getPortfolio();
+      arr.splice(idx, 1);
+      setPortfolio(arr);
+    });
+  });
+
+  renderPortfolioCharts(p);
+}
+function renderPortfolioCharts(p){
+  const byType = {};
+  const byAsset = {};
+  p.forEach(h => {
+    const m = calcHoldingMetrics(h);
+    const t = h.type || "Other";
+    byType[t] = (byType[t] || 0) + m.value;
+    byAsset[h.name || "Untitled"] = m.pl;
+  });
+
+  const allocLabels = Object.keys(byType);
+  const allocValues = allocLabels.map(k => byType[k]);
+
+  const plLabels = Object.keys(byAsset);
+  const plValues = plLabels.map(k => byAsset[k]);
+
+  if (allocChart) allocChart.destroy();
+  allocChart = new Chart(document.getElementById("allocChart"), {
+    type:"doughnut",
+    data:{ labels: allocLabels, datasets:[{ label:"Allocation", data: allocValues }]},
+    options:{
+      plugins:{
+        legend:{ display:true },
+        tooltip:{ callbacks:{ label:(ctx)=> `${ctx.label}: ₹${fmtINR(ctx.raw)}` } }
+      }
+    }
+  });
+
+  if (plChart) plChart.destroy();
+  plChart = new Chart(document.getElementById("plChart"), {
+    type:"bar",
+    data:{ labels: plLabels, datasets:[{ label:"Profit/Loss (₹)", data: plValues }]},
+    options:{
+      plugins:{ legend:{ display:true } },
+      scales:{ y:{ ticks:{ callback:(v)=> fmtINR(v) } } }
+    }
+  });
+}
+
+document.getElementById("pAdd").addEventListener("click", () => {
+  const row = portfolioRowFromInputs();
+  if (!row.name){
+    alert("Please enter Asset Name.");
+    return;
+  }
+  const arr = getPortfolio();
+  const editIndex = document.getElementById("pName").dataset.editIndex;
+  if (editIndex !== undefined && editIndex !== ""){
+    arr[Number(editIndex)] = row;
+    document.getElementById("pName").dataset.editIndex = "";
+  } else {
+    arr.push(row);
+  }
+  setPortfolio(arr);
+});
+document.getElementById("pClear").addEventListener("click", () => {
+  ["pName","pUnits","pAvg","pCur","pBroker"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("pType").value = "Equity";
+  document.getElementById("pName").dataset.editIndex = "";
+});
+document.getElementById("pResetAll").addEventListener("click", () => {
+  if (!confirm("Reset portfolio (clears LocalStorage)?")) return;
+  setPortfolio([]);
+});
+document.getElementById("pExport").addEventListener("click", () => downloadJSON("portfolio.json", getPortfolio()));
+document.getElementById("pImportFile").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  try{
+    const json = await readFileAsJSON(f);
+    if (!Array.isArray(json)) throw new Error("Expected an array of holdings.");
+    const clean = json.map(x => ({
+      name: String(x.name||"").trim(),
+      type: String(x.type||"Other"),
+      units: Number(x.units||0),
+      avg: Number(x.avg||0),
+      cur: Number(x.cur||0),
+      broker: Number(x.broker||0),
+    })).filter(x => x.name);
+    setPortfolio(clean);
+    alert("Imported portfolio.");
+  } catch(err){
+    alert("Import failed: " + err.message);
+  } finally {
+    e.target.value = "";
+  }
+});
+renderPortfolio();
+
+/* -------------------------
+   Technical Analysis (Manual prices)
+--------------------------*/
+let taPriceChart, taRsiChart, taMacdChart;
+
+function parsePriceSeries(text){
+  const lines = (text||"").trim().split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const labels = [];
+  const closes = [];
+  for (const ln of lines){
+    const parts = ln.split(",").map(x=>x.trim()).filter(Boolean);
+    if (parts.length === 1){
+      const c = Number(parts[0]);
+      if (Number.isFinite(c)){
+        labels.push(String(labels.length+1));
+        closes.push(c);
+      }
+    } else {
+      const c = Number(parts[parts.length-1]);
+      if (Number.isFinite(c)){
+        const d = parts.slice(0, parts.length-1).join(",") || String(labels.length+1);
+        labels.push(d);
+        closes.push(c);
+      }
+    }
+  }
+  return { labels, closes };
+}
+
+function simpleMovingAverage(arr, n){
+  const out = Array(arr.length).fill(null);
+  if (n <= 0) return out;
+  let sum = 0;
+  for (let i=0;i<arr.length;i++){
+    sum += arr[i];
+    if (i >= n) sum -= arr[i-n];
+    if (i >= n-1) out[i] = sum / n;
+  }
+  return out;
+}
+function exponentialMovingAverage(arr, n){
+  const out = Array(arr.length).fill(null);
+  if (n <= 0) return out;
+  const alpha = 2/(n+1);
+  let prev = null;
+  for (let i=0;i<arr.length;i++){
+    const x = arr[i];
+    if (!Number.isFinite(x)) continue;
+    if (prev === null){
+      prev = x;
+      out[i] = prev;
+    } else {
+      prev = alpha*x + (1-alpha)*prev;
+      out[i] = prev;
+    }
+  }
+  return out;
+}
+function standardDeviationWindow(arr, n){
+  const out = Array(arr.length).fill(null);
+  if (n <= 1) return out;
+  for (let i=n-1;i<arr.length;i++){
+    const win = arr.slice(i-n+1, i+1);
+    const mean = win.reduce((a,b)=>a+b,0)/n;
+    const variance = win.reduce((a,b)=>a + (b-mean)*(b-mean), 0)/n;
+    out[i] = Math.sqrt(variance);
+  }
+  return out;
+}
+function relativeStrengthIndexWilder(closes, n){
+  const out = Array(closes.length).fill(null);
+  if (n <= 0 || closes.length < n+1) return out;
+
+  const gains = [];
+  const losses = [];
+  for (let i=1;i<closes.length;i++){
+    const d = closes[i] - closes[i-1];
+    gains.push(Math.max(d, 0));
+    losses.push(Math.max(-d, 0));
+  }
+
+  let avgGain = 0, avgLoss = 0;
+  for (let i=0;i<n;i++){
+    avgGain += gains[i];
+    avgLoss += losses[i];
+  }
+  avgGain /= n;
+  avgLoss /= n;
+
+  const rs0 = avgLoss === 0 ? Infinity : (avgGain/avgLoss);
+  out[n] = 100 - (100/(1+rs0));
+
+  for (let i=n+1;i<closes.length;i++){
+    const g = gains[i-1];
+    const l = losses[i-1];
+    avgGain = ((avgGain*(n-1)) + g) / n;
+    avgLoss = ((avgLoss*(n-1)) + l) / n;
+    const rs = avgLoss === 0 ? Infinity : (avgGain/avgLoss);
+    out[i] = 100 - (100/(1+rs));
+  }
+  return out;
+}
+function movingAverageConvergenceDivergence(closes, fastN, slowN, signalN){
+  const fast = exponentialMovingAverage(closes, fastN);
+  const slow = exponentialMovingAverage(closes, slowN);
+  const macdLine = closes.map((_,i)=>{
+    if (fast[i] == null || slow[i] == null) return null;
+    return fast[i] - slow[i];
+  });
+
+  const signal = Array(closes.length).fill(null);
+  if (signalN > 0){
+    const alpha = 2/(signalN+1);
+    let prev = null;
+    for (let i=0;i<macdLine.length;i++){
+      const x = macdLine[i];
+      if (x == null) continue;
+      if (prev === null){
+        prev = x;
+        signal[i] = prev;
+      } else {
+        prev = alpha*x + (1-alpha)*prev;
+        signal[i] = prev;
+      }
+    }
+  }
+
+  const hist = closes.map((_,i)=>{
+    if (macdLine[i] == null || signal[i] == null) return null;
+    return macdLine[i] - signal[i];
+  });
+
+  return { macdLine, signal, hist };
+}
+
+function lastFinite(arr){
+  for (let i=arr.length-1;i>=0;i--){
+    if (Number.isFinite(arr[i])) return arr[i];
+  }
+  return null;
+}
+
+function computeSupportResistance(closes){
+  if (closes.length < 6) return { support:null, resistance:null, rangeLow:null, rangeHigh:null };
+
+  const windowSize = 2;
+  const swingHighs = [];
+  const swingLows = [];
+
+  for (let i=windowSize;i<closes.length-windowSize;i++){
+    const c = closes[i];
+    let isHigh = true, isLow = true;
+    for (let k=1;k<=windowSize;k++){
+      if (c <= closes[i-k] || c <= closes[i+k]) isHigh = false;
+      if (c >= closes[i-k] || c >= closes[i+k]) isLow = false;
+    }
+    if (isHigh) swingHighs.push(c);
+    if (isLow) swingLows.push(c);
+  }
+
+  const lastN = Math.min(30, closes.length);
+  const recent = closes.slice(-lastN);
+  const rangeLow = Math.min(...recent);
+  const rangeHigh = Math.max(...recent);
+
+  const last = closes[closes.length-1];
+  const supports = swingLows.filter(x=>x <= last).sort((a,b)=>b-a);
+  const resistances = swingHighs.filter(x=>x >= last).sort((a,b)=>a-b);
+
+  return {
+    support: supports.length ? supports[0] : rangeLow,
+    resistance: resistances.length ? resistances[0] : rangeHigh,
+    rangeLow, rangeHigh
+  };
+}
+
+function renderTACharts(labels, closes, smaN, emaN, rsiArr, macdObj, bbMid, bbUp, bbLo){
+  if (taPriceChart) taPriceChart.destroy();
+  taPriceChart = new Chart(document.getElementById("taPriceChart"), {
+    type:"line",
+    data:{
+      labels,
+      datasets:[
+        { label:"Close", data: closes, tension:.15 },
+        { label:`Simple Moving Average (${smaN})`, data: bbMid, tension:.15 },
+        { label:`Exponential Moving Average (${emaN})`, data: exponentialMovingAverage(closes, emaN), tension:.15 },
+        { label:"Bollinger Upper Band", data: bbUp, tension:.15 },
+        { label:"Bollinger Lower Band", data: bbLo, tension:.15 },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ display:true } },
+      scales:{ y:{ ticks:{ callback:(v)=> fmt2(v) } } }
+    }
+  });
+
+  if (taRsiChart) taRsiChart.destroy();
+  taRsiChart = new Chart(document.getElementById("taRsiChart"), {
+    type:"line",
+    data:{ labels, datasets:[{ label:"Relative Strength Index", data: rsiArr, tension:.15 }] },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ display:true } },
+      scales:{
+        y:{ suggestedMin:0, suggestedMax:100, ticks:{ callback:(v)=> String(v) } }
+      }
+    }
+  });
+
+  if (taMacdChart) taMacdChart.destroy();
+  taMacdChart = new Chart(document.getElementById("taMacdChart"), {
+    data:{
+      labels,
+      datasets:[
+        { type:"line", label:"MACD Line", data: macdObj.macdLine, tension:.15 },
+        { type:"line", label:"Signal Line", data: macdObj.signal, tension:.15 },
+        { type:"bar", label:"Histogram", data: macdObj.hist },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ display:true } },
+      scales:{ y:{ ticks:{ callback:(v)=> fmt2(v) } } }
+    }
+  });
+}
+
+function analyzeSignals(closes, smaArr, rsiArr, macdObj, bbUp, bbLo){
+  const lastClose = closes[closes.length-1];
+  const lastSma = lastFinite(smaArr);
+  const lastRsi = lastFinite(rsiArr);
+  const lastMacd = lastFinite(macdObj.macdLine);
+  const lastSig = lastFinite(macdObj.signal);
+  const lastUp = lastFinite(bbUp);
+  const lastLo = lastFinite(bbLo);
+
+  let trend = "—";
+  let trendTone = "";
+  if (Number.isFinite(lastSma)){
+    if (lastClose > lastSma){ trend = "Bullish (Close above SMA)"; trendTone="good"; }
+    else if (lastClose < lastSma){ trend = "Bearish (Close below SMA)"; trendTone="bad"; }
+    else { trend = "Neutral"; trendTone="warn"; }
+  }
+
+  const signals = [];
+  if (Number.isFinite(lastRsi)){
+    if (lastRsi >= 70) signals.push("RSI indicates Overbought (≥ 70)");
+    else if (lastRsi <= 30) signals.push("RSI indicates Oversold (≤ 30)");
+    else signals.push("RSI is neutral (30–70)");
+  }
+  if (Number.isFinite(lastMacd) && Number.isFinite(lastSig)){
+    if (lastMacd > lastSig) signals.push("MACD Line is above Signal Line (bullish momentum)");
+    else if (lastMacd < lastSig) signals.push("MACD Line is below Signal Line (bearish momentum)");
+    else signals.push("MACD Line equals Signal Line (neutral momentum)");
+  }
+  if (Number.isFinite(lastUp) && Number.isFinite(lastLo)){
+    if (lastClose >= lastUp) signals.push("Price touched/above Bollinger Upper Band");
+    else if (lastClose <= lastLo) signals.push("Price touched/below Bollinger Lower Band");
+    else signals.push("Price is inside Bollinger Bands");
+  }
+
+  return { lastClose, lastRsi, lastMacd, lastSig, trend, trendTone, signals };
+}
+
+document.getElementById("taLoadSample").addEventListener("click", () => {
+  const sample = [
+    "2025-01-01,100","2025-01-02,102","2025-01-03,101","2025-01-04,103","2025-01-05,106",
+    "2025-01-06,105","2025-01-07,107","2025-01-08,110","2025-01-09,108","2025-01-10,111",
+    "2025-01-11,113","2025-01-12,112","2025-01-13,114","2025-01-14,116","2025-01-15,115",
+    "2025-01-16,117","2025-01-17,118","2025-01-18,120","2025-01-19,119","2025-01-20,121",
+    "2025-01-21,123","2025-01-22,122","2025-01-23,124","2025-01-24,126","2025-01-25,125",
+    "2025-01-26,127","2025-01-27,129","2025-01-28,128","2025-01-29,130","2025-01-30,132"
+  ].join("\n");
+  document.getElementById("taPrices").value = sample;
+});
+
+document.getElementById("taClear").addEventListener("click", () => {
+  document.getElementById("taPrices").value = "";
+  setText("taLastClose","—");
+  setText("taTrend","—");
+  setText("taLastRsi","—");
+  setText("taLastMacd","—");
+  renderKpis([], "taKpis");
+  renderKpis([], "taSR");
+  document.getElementById("taSignals").innerHTML = "Click “Compute & Plot” to see signals.";
+  if (taPriceChart) { taPriceChart.destroy(); taPriceChart=null; }
+  if (taRsiChart) { taRsiChart.destroy(); taRsiChart=null; }
+  if (taMacdChart) { taMacdChart.destroy(); taMacdChart=null; }
+});
+
+document.getElementById("taCompute").addEventListener("click", () => {
+  const { labels, closes } = parsePriceSeries(document.getElementById("taPrices").value);
+  if (closes.length < 5){
+    alert("Please paste at least 5 data points.");
+    return;
+  }
+
+  const smaN = Math.max(1, Math.floor(readNum("taSmaN", 20)));
+  const emaN = Math.max(1, Math.floor(readNum("taEmaN", 20)));
+  const rsiN = Math.max(1, Math.floor(readNum("taRsiN", 14)));
+
+  const macdFast = Math.max(1, Math.floor(readNum("taMacdFast", 12)));
+  const macdSlow = Math.max(1, Math.floor(readNum("taMacdSlow", 26)));
+  const macdSignalN = Math.max(1, Math.floor(readNum("taMacdSignal", 9)));
+
+  const bbN = Math.max(2, Math.floor(readNum("taBbN", 20)));
+  const bbK = Math.max(0.1, readNum("taBbK", 2));
+
+  const smaArr = simpleMovingAverage(closes, smaN);
+  const rsiArr = relativeStrengthIndexWilder(closes, rsiN);
+  const macdObj = movingAverageConvergenceDivergence(closes, macdFast, macdSlow, macdSignalN);
+
+  const bbMid = simpleMovingAverage(closes, bbN);
+  const bbSd = standardDeviationWindow(closes, bbN);
+  const bbUp = bbMid.map((m,i)=> (m==null || bbSd[i]==null) ? null : (m + bbK*bbSd[i]));
+  const bbLo = bbMid.map((m,i)=> (m==null || bbSd[i]==null) ? null : (m - bbK*bbSd[i]));
+
+  renderTACharts(labels, closes, smaN, emaN, rsiArr, macdObj, bbMid, bbUp, bbLo);
+
+  const sig = analyzeSignals(closes, smaArr, rsiArr, macdObj, bbUp, bbLo);
+
+  setText("taLastClose", fmt2(sig.lastClose));
+  setText("taTrend", sig.trend);
+  document.getElementById("taTrend").className = sig.trendTone ? sig.trendTone : "";
+  setText("taLastRsi", sig.lastRsi==null ? "—" : sig.lastRsi.toFixed(2));
+  setText("taLastMacd", (sig.lastMacd==null || sig.lastSig==null) ? "—" : `${sig.lastMacd.toFixed(2)} / ${sig.lastSig.toFixed(2)}`);
+
+  const kpis = [];
+  const lastSma = lastFinite(smaArr);
+  if (Number.isFinite(lastSma)){
+    const distPct = ((sig.lastClose - lastSma)/lastSma)*100;
+    kpis.push({ label:"Close vs SMA", value: pct(distPct), tone: distPct>=0 ? "good" : "bad" });
+  }
+  if (sig.lastRsi != null){
+    const tone = sig.lastRsi>=70 ? "warn" : (sig.lastRsi<=30 ? "warn" : "good");
+    kpis.push({ label:"RSI Zone", value: sig.lastRsi>=70 ? "Overbought" : (sig.lastRsi<=30 ? "Oversold" : "Neutral"), tone });
+  }
+  if (sig.lastMacd != null && sig.lastSig != null){
+    const tone = sig.lastMacd>=sig.lastSig ? "good" : "bad";
+    kpis.push({ label:"MACD Momentum", value: sig.lastMacd>=sig.lastSig ? "Bullish" : "Bearish", tone });
+  }
+  renderKpis(kpis, "taKpis");
+
+  const sr = computeSupportResistance(closes);
+  renderKpis([
+    { label:"Support", value: sr.support==null ? "—" : fmt2(sr.support), tone:"good" },
+    { label:"Resistance", value: sr.resistance==null ? "—" : fmt2(sr.resistance), tone:"warn" },
+    { label:"Recent Low", value: sr.rangeLow==null ? "—" : fmt2(sr.rangeLow) },
+    { label:"Recent High", value: sr.rangeHigh==null ? "—" : fmt2(sr.rangeHigh) },
+  ], "taSR");
+
+  const bullets = sig.signals.map(s => `• ${escapeHtml(s)}`).join("<br/>");
+  document.getElementById("taSignals").innerHTML = `<b>Signals (heuristics):</b><br/>${bullets}`;
+});
+
+/* Init */
+syncMonths();
+</script>
+</body>
+</html>
